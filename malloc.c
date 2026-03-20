@@ -5,6 +5,7 @@ struct header{
     size_t data;
     int free;
     struct header *next;
+    struct header *prev;
 };
 
 static head = NULL;
@@ -30,6 +31,20 @@ void free(void *ptr){
 
     struct header *block = (struct header*) ptr -1;
     block->free=1;
+
+    if(block->next && block->next->free){
+        block->size += sizeof(struct header) + block->next->size;
+        block->next=block->next->next;
+        block->next->prev=block;
+    }
+    if(block->prev && block->prev->free){
+        struct header *prev_block = block->free;
+        prev_block->size += sizeof(struct header) + block->next->size;
+        prev_block->next = block->next;
+        if(block->next){
+        block->next->prev= prev_block;
+        }
+    }
 }
 
 void *malloc(size_t size){
@@ -59,6 +74,7 @@ void *malloc(size_t size){
 
     block->size= real_size;
     block->free = 0;
+    block->prev=last;
     block->next = NULL;
     
 
