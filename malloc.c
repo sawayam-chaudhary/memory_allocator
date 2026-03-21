@@ -47,6 +47,19 @@ void free(void *ptr){
     }
 }
 
+void split(TreeNode *block, size_t size){
+    struct header *new_block = (struct header*)((char*)block + sizeof(header) + size);
+    new_block->size = block->size - size - sizeof(struct header);
+    new_block->free=1;
+    new_block->next = block->next;
+    new_block->prev=block;
+    if(new_block->next){
+        new_block->next->prev=new_block;
+    }
+    block->size=size;
+    block->next=new_block;
+}
+
 void *malloc(size_t size){
 
     if(size<=0){
